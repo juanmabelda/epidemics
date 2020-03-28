@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 
 
 #%%
-plt.ion()
 plt.rcParams['figure.figsize'] = 15, 8
 
 #%%
@@ -141,9 +140,5 @@ plt.plot(M, label='Fallecidos')
 plt.legend(loc=0)
 plt.xlabel('Tiempo (días)')
 
-#%% La tasa de muertos
-TasaMuertos = [100*M[c]/max(E[0:c]) for c in range(1,90)]
-    
-plt.figure();
-plt.plot(TasaMuertos)
-       
+#%%
+plt.show()

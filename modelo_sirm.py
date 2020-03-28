@@ -24,7 +24,6 @@ El 2% de los contagiados enfermos se muere
 '''
 
 #%%
-plt.ion()
 plt.rcParams['figure.figsize'] = 10, 8
 
 #%%
@@ -72,3 +71,6 @@ plt.xlabel('Días desde el brote')
 plt.ylabel('Población')
 plt.title('Infeccion COVID19')
 plt.legend(loc=0)
+
+#%%
+plt.show()
