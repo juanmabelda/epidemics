@@ -54,6 +54,15 @@ of a discrete system.
 python discreto.py
 ```
 
+## Simula individuos
+
+This model simulates an isolated village (by default with 1000 inhabitants) suffering
+an outbreak, without restrictions of movements in the individuals 
+
+```{python}
+python simula_individuos.py
+```
+
 ## Authors
 
 * **Juanma Belda** - [Faking Physics](https://twitter.com/fakingphysics)
