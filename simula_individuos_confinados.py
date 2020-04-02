@@ -13,8 +13,27 @@ from numpy.random import rand, randint
 
 plt.rcParams['figure.figsize'] = 10, 8
 
+#%% Anotaciones para los cálculos de las variables
+
+'''
+F = -K*x
+a = F/m -> a = (-K/m)*x
+
+x = A*sen(w*t)
+v = A*w*cos(w*t)
+a = -A*w^2*sen(w*t) = -w*x
+
+w = (-K/m)
+v(0) = A*w = vo
+w = 2*pi*f = 2*pi*(1/8)->(K/m)=2*pi*(1/8)->(K/m)=pi/4->(K/m) ~ 0.79
+v(0) = A*pi/4 = vo -> si A = 2 -> vo=pi/2 -> vo~1.6 
+'''
+
+
 #%% Parámetros del modelo
-velocidad = 1.
+velocidad = 1.6
+K = 0.79
+
 Espacio=[30, 30]
 Estados = ["Asintomaticos", "Enfermos", "Graves", "Recuperados", "Muertos"]
 
@@ -43,15 +62,18 @@ class Poblacion():
             theta = rand()*2*pi # El ángulo de la velocidad con la que sale
             
             # Definimos a cada individuo
+            pos0 = [randint(Espacio[0]), randint(Espacio[1])]
+            v0 = [velocidad*cos(theta), velocidad*sin(theta)]
             p = {"Estado": "Sano",
-                 "Posicion": [randint(Espacio[0]), randint(Espacio[1])],
-                 "Velocidad": [velocidad*cos(theta), velocidad*sin(theta)],
-                 "Dias" : 0}
+                 "Posicion": pos0,
+                 "Velocidad": v0,
+                 "Dias" : 0,
+                 "Centro" : pos0}
             
             # Posicion : Posición que ocupa en el mapa
             # Velocidad: Es el vector que indica hacia donde se desplaza
             # Estado   : Indica su estado de salud
-            # 
+            # Centro   : La posición central del confinamiento
             
             
             self._poblacion.append(p)
@@ -134,21 +156,17 @@ class Poblacion():
         for n, p in enumerate(self._poblacion):
             pos = array(p["Posicion"])
             vel = array(p["Velocidad"])
+            cen = array(p["Centro"])
             
-            posnueva = pos + vel * 1 #dt = 1
+            acel = -K*(pos-cen)
+            dt = 1 # Tiempo de muestreo = 1 dias
             
-            # Comprobamos los contornos
-            for c in range(2):
-                if posnueva[c] <= 0:
-                    posnueva[c] = 0.
-                    vel[c] = -vel[c]
-                elif posnueva[c] >= Espacio[c]:
-                    posnueva[c] = Espacio[c]
-                    vel[c] = -vel[c]
-
+            posnueva = pos + vel*dt  +  0.5*acel*dt**2#dt = 1
+            velnueva = vel + acel*dt
+            
             # Actualizamos la posicion                    
             self._poblacion[n]["Posicion"] = list(posnueva)
-            self._poblacion[n]["Velocidad"] = list(vel)
+            self._poblacion[n]["Velocidad"] = list(velnueva)
 
         # Detectamos coincidencias
         for c in range(N):
@@ -242,6 +260,8 @@ plt.plot(Muertos, label="Muertos")
 plt.xlabel("Tiempo (dias)")
 plt.ylabel("% de la poblacion")
 
+plt.axis([0, 120, 0, 100])
+
 plt.legend(loc=0)
 
 
@@ -256,3 +276,35 @@ aMuertos = array(Muertos)
 
 Mortalidad = 100. * aMuertos/(aEnfermos+aGraves)
 plt.plot(Mortalidad)
+
+Sanos = 10*(100-array(Enfermos)-array(Graves)-array(Muertos)-array(Asintomaticos)-array(Recuperados))
+
+
+#%%
+from numpy import *
+
+dEnfermos = diff(10*array(Enfermos))
+dEnfermos = hstack([dEnfermos,[0]])
+
+dEnfermos = matrix(reshape(dEnfermos, [120,1]))
+Producto = matrix(reshape(Sanos*array(Enfermos),[120,1]))
+
+Theta_e = (Producto.T*Producto).I * (Producto.T*dEnfermos)
+
+dGraves = diff(10*array(Graves))
+dGraves = hstack([dGraves,[0]])
+
+dGraves = matrix(reshape(dGraves, [120,1]))
+Producto = matrix(reshape(Sanos*array(Graves),[120,1]))
+
+Theta_g = (Producto.T*Producto).I * (Producto.T*dGraves)
+
+dAsintomaticos = diff(10*array(Asintomaticos))
+dAsintomaticos = hstack([dAsintomaticos,[0]])
+
+dAsintomaticos = matrix(reshape(dAsintomaticos, [120,1]))
+Producto = matrix(reshape(Sanos*array(Asintomaticos),[120,1]))
+
+Theta_a = (Producto.T*Producto).I * (Producto.T*dAsintomaticos)
+
+
